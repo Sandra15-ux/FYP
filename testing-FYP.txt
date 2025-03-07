@@ -38,9 +38,7 @@ nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
 nltk.download('vader_lexicon')
-
 df = pd.read_csv("C:/Users/Sandra Tang/Emotion Detection Text Sentiment Analysis/emotionDataset.csv")
-
 print(df.info())
 print("First 5 rows:")
 display(df.head())
@@ -66,7 +64,6 @@ plt.ylabel("Count", fontsize=12)
 plt.xticks(rotation=20) 
 plt.show()
 print(df.columns)
-# Define improved text preprocessing function
 def advanced_text_preprocessing(text):
     """
     Comprehensive text preprocessing function
@@ -116,15 +113,12 @@ def advanced_text_preprocessing(text):
     processed_text = ' '.join(tokens)
     
     return processed_text
-# Apply advanced text preprocessing
 df['processed_text'] = df['Text'].apply(advanced_text_preprocessing)
-# Display original and processed text for comparison
 comparison_df = pd.DataFrame({
     'Original Text': df['Text'].head(5),
     'Processed Text': df['processed_text'].head(5)
 })
 display(comparison_df)
-# Function to extract additional features from text
 def extract_text_features(text):
     """
     Extract additional features from text like:
@@ -181,12 +175,9 @@ def extract_text_features(text):
     features['emoji_count'] = len(emoji_pattern.findall(text))
     
     return features
-# Extract features and add to dataframe
 features_df = pd.DataFrame(df['Text'].apply(extract_text_features).tolist())
 df = pd.concat([df, features_df], axis=1)
-# Display the dataframe with new features
 display(df.head())
-# Tokenize the processed text
 tokenizer = Tokenizer()
 tokenizer.fit_on_texts(df['processed_text'].tolist())
 sequences = tokenizer.texts_to_sequences(df['processed_text'].tolist())
@@ -195,8 +186,7 @@ padded_sequences = pad_sequences(sequences, maxlen=max_len)
 
 print(f"Vocabulary size: {len(tokenizer.word_index) + 1}")
 print(f"Maximum sequence length: {max_len}")
-print(f"Padded sequences shape: {padded_sequences.shape}")
-# Encode the emotion labels
+print(f"Padded sequences shape: {padded_sequences.shape}"
 label_encoder = LabelEncoder()
 labels = label_encoder.fit_transform(df['Emotion'])
 one_hot = tf.keras.utils.to_categorical(labels)
@@ -204,15 +194,12 @@ one_hot = tf.keras.utils.to_categorical(labels)
 print(f"Number of classes: {len(label_encoder.classes_)}")
 print(f"Class names: {label_encoder.classes_}")
 print(f"One-hot encoded labels shape: {one_hot.shape}")
-# Train-test split
 x_train, x_test, y_train, y_test = train_test_split(padded_sequences, one_hot, test_size=0.2, random_state=42)
 
 print(f"Training set features shape: {x_train.shape}")
 print(f"Testing set features shape: {x_test.shape}")
 print(f"Training set target shape: {y_train.shape}")
 print(f"Testing set target shape: {y_test.shape}")
-
-# Define a function to create a Bidirectional LSTM model
 def create_bidirectional_lstm_model(vocab_size, embedding_dim, input_length, num_classes):
     model = Sequential()
     
@@ -244,7 +231,6 @@ def create_bidirectional_lstm_model(vocab_size, embedding_dim, input_length, num
                   metrics=['accuracy'])
     
     return model
-# Define a function to create a CNN model
 def create_cnn_model(vocab_size, embedding_dim, input_length, num_classes):
     model = Sequential()
     
@@ -274,7 +260,6 @@ def create_cnn_model(vocab_size, embedding_dim, input_length, num_classes):
                   metrics=['accuracy'])
     
     return model
-# Create model instances for demonstration
 vocab_size = len(tokenizer.word_index) + 1
 embedding_dim = 200
 input_length = max_len
@@ -282,13 +267,11 @@ num_classes = len(one_hot[0])
 
 lstm_model = create_bidirectional_lstm_model(vocab_size, embedding_dim, input_length, num_classes)
 cnn_model = create_cnn_model(vocab_size, embedding_dim, input_length, num_classes)
-# Display model summaries
 print("Bidirectional LSTM Model Summary:")
 lstm_model.summary()
 
 print("\nCNN Model Summary:")
 cnn_model.summary()
-# Define function for training with cross-validation
 def train_with_cross_validation(create_model_func, X, y, n_splits=5, epochs=50, batch_size=32):
     """
     Train a model using cross-validation
@@ -398,7 +381,6 @@ def train_with_cross_validation(create_model_func, X, y, n_splits=5, epochs=50, 
     fold_metrics_df = pd.DataFrame(fold_metrics)
     
     return models, histories, fold_metrics_df
-# Define model creation function for cross-validation
 def create_model():
     return create_bidirectional_lstm_model(vocab_size, embedding_dim, input_length, num_classes)
     # Alternative: return create_cnn_model(vocab_size, embedding_dim, input_length, num_classes)
@@ -436,7 +418,6 @@ plt.show()
 best_model_idx = fold_metrics_df['val_loss'].argmin()
 best_model = models[best_model_idx]
 print(f"Selected model from fold {fold_metrics_df.iloc[best_model_idx]['fold']} with validation loss {fold_metrics_df.iloc[best_model_idx]['val_loss']:.4f}")
-# Define function for comprehensive evaluation
 def comprehensive_evaluation(model, X_test, y_test, label_encoder):
     """
     Perform a comprehensive evaluation of the model
@@ -489,7 +470,6 @@ def comprehensive_evaluation(model, X_test, y_test, label_encoder):
     }
     
     return eval_results
-# Define function to visualize evaluation results
 def visualize_evaluation_results(eval_results):
     """
     Visualize evaluation results with nice plots
@@ -583,7 +563,6 @@ eval_results = comprehensive_evaluation(trained_model, x_test, y_test, label_enc
 
 # Visualize results
 visualize_evaluation_results(eval_results)
-# Define the EmotionAnalyzer class
 class EmotionAnalyzer:
     def __init__(self, model, tokenizer, max_len, label_encoder, preprocessing_func=None):
         """
@@ -730,9 +709,8 @@ class EmotionAnalyzer:
         """
         # Get prediction
         prediction = self.predict_emotion(text)
-        
-        # Create figure with subplots
-        fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+        analysis = self.analyze_text(text)
+        figures = {}
         
         # 1. Emotion probability bar chart
         emotions = prediction['emotion_probabilities']
@@ -755,16 +733,20 @@ class EmotionAnalyzer:
         # Get colors in the same order as emotions
         colors = [emotion_colors.get(e, "#333333") for e in emotion_names]
         
-        axes[0, 0].bar(emotion_names, emotion_probs, color=colors)
-        axes[0, 0].set_title('Emotion Probabilities', fontsize=14)
-        axes[0, 0].set_ylabel('Probability', fontsize=12)
-        axes[0, 0].set_ylim(0, 1)
-        axes[0, 0].set_xticklabels(emotion_names, rotation=45, ha='right')
+        fig_emotions = plt.figure(figsize=(8, 6))
+        ax_emotions = fig_emotions.add_subplot(111)
+        bars = ax_emotions.bar(emotion_names, emotion_probs, color=colors)
+        ax_emotions.set_title('Emotion Probabilities', fontsize=14)
+        ax_emotions.set_ylabel('Probability', fontsize=12)
+        ax_emotions.set_ylim(0, 1)
+        plt.xticks(rotation=45, ha='right')
         
         # Highlight the predicted emotion
         predicted_idx = emotion_names.index(prediction['predicted_emotion'])
-        axes[0, 0].get_children()[predicted_idx].set_edgecolor('black')
-        axes[0, 0].get_children()[predicted_idx].set_linewidth(2)
+        bars[predicted_idx].set_edgecolor('black')
+        bars[predicted_idx].set_linewidth(2)
+        plt.tight_layout()
+        figures['emotion_probs'] = fig_emotions
         
         # 2. VADER sentiment analysis
         sentiment = prediction['sentiment_vader']
@@ -772,15 +754,21 @@ class EmotionAnalyzer:
         sentiment_values = [sentiment['neg'], sentiment['neu'], sentiment['pos'], sentiment['compound']]
         sentiment_colors = ['#DC143C', '#A9A9A9', '#228B22', '#1E90FF']
         
-        axes[0, 1].bar(sentiment_labels, sentiment_values, color=sentiment_colors)
-        axes[0, 1].set_title('Sentiment Analysis (VADER)', fontsize=14)
-        axes[0, 1].set_ylabel('Score', fontsize=12)
-        axes[0, 1].set_ylim(-1, 1)
-        axes[0, 1].axhline(y=0, color='black', linestyle='-', alpha=0.3)
+        fig_sentiment = plt.figure(figsize=(8, 6))
+        ax_sentiment = fig_sentiment.add_subplot(111)
+        ax_sentiment.bar(sentiment_labels, sentiment_values, color=sentiment_colors)
+        ax_sentiment.set_title('Sentiment Analysis (VADER)', fontsize=14)
+        ax_sentiment.set_ylabel('Score', fontsize=12)
+        ax_sentiment.set_ylim(-1, 1)
+        ax_sentiment.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+        plt.tight_layout()
+        figures['sentiment'] = fig_sentiment
         
         # 3. Word cloud based on word importance
-        analysis = self.analyze_text(text)
         word_importance = analysis['word_importance']
+        
+        fig_wordcloud = plt.figure(figsize=(8, 6))
+        ax_wordcloud = fig_wordcloud.add_subplot(111)
         
         if word_importance:
             wordcloud = WordCloud(
@@ -791,9 +779,9 @@ class EmotionAnalyzer:
                 max_words=50
             ).generate_from_frequencies(word_importance)
             
-            axes[1, 0].imshow(wordcloud, interpolation='bilinear')
-            axes[1, 0].set_title('Important Words', fontsize=14)
-            axes[1, 0].axis('off')
+            ax_wordcloud.imshow(wordcloud, interpolation='bilinear')
+            ax_wordcloud.set_title('Important Words', fontsize=14)
+            ax_wordcloud.axis('off')
         else:
             # Create a simple word cloud from the text if no word importance
             wordcloud = WordCloud(
@@ -804,12 +792,17 @@ class EmotionAnalyzer:
                 max_words=50
             ).generate(text)
             
-            axes[1, 0].imshow(wordcloud, interpolation='bilinear')
-            axes[1, 0].set_title('Word Cloud', fontsize=14)
-            axes[1, 0].axis('off')
+            ax_wordcloud.imshow(wordcloud, interpolation='bilinear')
+            ax_wordcloud.set_title('Word Cloud', fontsize=14)
+            ax_wordcloud.axis('off')
+        
+        plt.tight_layout()
+        figures['wordcloud'] = fig_wordcloud
         
         # 4. Text with highlighted entities
-        axes[1, 1].axis('off')
+        fig_text = plt.figure(figsize=(8, 6))
+        ax_text = fig_text.add_subplot(111)
+        ax_text.axis('off')
         entities = analysis['entities']
         
         # Wrap text for display
@@ -836,23 +829,169 @@ class EmotionAnalyzer:
         
         # Create a rectangle with the emotion color as background
         rect = Rectangle((0, 0), 1, 1, fc=emotion_color, alpha=0.3)
-        axes[1, 1].add_patch(rect)
+        ax_text.add_patch(rect)
         
         # Add the text on top
-        axes[1, 1].text(0.05, 0.95, text_box, 
-                     va='top', ha='left', 
-                     fontsize=10,
-                     wrap=True)
+        ax_text.text(0.05, 0.95, text_box, 
+                    va='top', ha='left', 
+                    fontsize=10,
+                    wrap=True)
         
-        axes[1, 1].set_title(f'Detected Emotion: {pred_emotion.capitalize()} ({prediction["confidence"]:.2f})', 
-                          fontsize=14)
+        ax_text.set_title(f'Detected Emotion: {pred_emotion.capitalize()} ({prediction["confidence"]:.2f})', 
+                        fontsize=14)
         
-        # Adjust layout and show plot
         plt.tight_layout()
-        plt.subplots_adjust(top=0.9)
-        plt.suptitle(f'Emotion Analysis for Text Input', fontsize=16)
+        figures['text_analysis'] = fig_text
         
-        return fig
+        return figures
+
+    def visualize_prediction_separate(self, text):
+        """
+        Create separate visualizations for the emotion prediction
+        
+        Args:
+            text: Input text
+            
+        Returns:
+            Dictionary containing the separate figures
+        """
+        # Get prediction
+        prediction = self.predict_emotion(text)
+        analysis = self.analyze_text(text)
+        figures = {}
+        
+        # 1. Emotion probability bar chart
+        emotions = prediction['emotion_probabilities']
+        sorted_emotions = sorted(emotions.items(), key=lambda x: x[1], reverse=True)
+        emotion_names = [e[0] for e in sorted_emotions]
+        emotion_probs = [e[1] for e in sorted_emotions]
+        
+        # Create color palette based on emotion values
+        emotion_colors = {
+            "neutral": "#A9A9A9",
+            "joy": "#FFFACD",
+            "sadness": "#1E90FF",
+            "fear": "#8A2BE2",
+            "surprise": "#FFA500",
+            "anger": "#DC143C",
+            "shame": "#8B4513",
+            "disgust": "#228B22"
+        }
+        
+        # Get colors in the same order as emotions
+        colors = [emotion_colors.get(e, "#333333") for e in emotion_names]
+        
+        fig_emotions = plt.figure(figsize=(8, 6))
+        ax_emotions = fig_emotions.add_subplot(111)
+        bars = ax_emotions.bar(emotion_names, emotion_probs, color=colors)
+        ax_emotions.set_title('Emotion Probabilities', fontsize=14)
+        ax_emotions.set_ylabel('Probability', fontsize=12)
+        ax_emotions.set_ylim(0, 1)
+        plt.xticks(rotation=45, ha='right')
+        
+        # Highlight the predicted emotion
+        predicted_idx = emotion_names.index(prediction['predicted_emotion'])
+        bars[predicted_idx].set_edgecolor('black')
+        bars[predicted_idx].set_linewidth(2)
+        plt.tight_layout()
+        figures['emotion_probs'] = fig_emotions
+        
+        # 2. VADER sentiment analysis
+        sentiment = prediction['sentiment_vader']
+        sentiment_labels = ['Negative', 'Neutral', 'Positive', 'Compound']
+        sentiment_values = [sentiment['neg'], sentiment['neu'], sentiment['pos'], sentiment['compound']]
+        sentiment_colors = ['#DC143C', '#A9A9A9', '#228B22', '#1E90FF']
+        
+        fig_sentiment = plt.figure(figsize=(8, 6))
+        ax_sentiment = fig_sentiment.add_subplot(111)
+        ax_sentiment.bar(sentiment_labels, sentiment_values, color=sentiment_colors)
+        ax_sentiment.set_title('Sentiment Analysis (VADER)', fontsize=14)
+        ax_sentiment.set_ylabel('Score', fontsize=12)
+        ax_sentiment.set_ylim(-1, 1)
+        ax_sentiment.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+        plt.tight_layout()
+        figures['sentiment'] = fig_sentiment
+        
+        # 3. Word cloud based on word importance
+        word_importance = analysis['word_importance']
+        
+        fig_wordcloud = plt.figure(figsize=(8, 6))
+        ax_wordcloud = fig_wordcloud.add_subplot(111)
+        
+        if word_importance:
+            wordcloud = WordCloud(
+                width=800, 
+                height=400, 
+                background_color='white',
+                colormap='viridis',
+                max_words=50
+            ).generate_from_frequencies(word_importance)
+            
+            ax_wordcloud.imshow(wordcloud, interpolation='bilinear')
+            ax_wordcloud.set_title('Important Words', fontsize=14)
+            ax_wordcloud.axis('off')
+        else:
+            # Create a simple word cloud from the text if no word importance
+            wordcloud = WordCloud(
+                width=800, 
+                height=400, 
+                background_color='white',
+                colormap='viridis',
+                max_words=50
+            ).generate(text)
+            
+            ax_wordcloud.imshow(wordcloud, interpolation='bilinear')
+            ax_wordcloud.set_title('Word Cloud', fontsize=14)
+            ax_wordcloud.axis('off')
+        
+        plt.tight_layout()
+        figures['wordcloud'] = fig_wordcloud
+        
+        # 4. Text with highlighted entities
+        fig_text = plt.figure(figsize=(8, 6))
+        ax_text = fig_text.add_subplot(111)
+        ax_text.axis('off')
+        entities = analysis['entities']
+        
+        # Wrap text for display
+        wrapped_text = textwrap.fill(text, width=60)
+        
+        # Display text with highlighted entities if available
+        entity_highlights = ""
+        if entities:
+            # Create a display of the text with highlighted entities
+            entity_highlights = "\nNamed Entities:\n"
+            for ent in entities:
+                entity_highlights += f"• {ent['text']} ({ent['label']})\n"
+        
+        # Add key emotional words
+        keywords = analysis['keywords'][:5] if len(analysis['keywords']) > 5 else analysis['keywords']
+        keyword_text = "\nKey Words: " + ", ".join(keywords) if keywords else ""
+        
+        # Display the text and analysis
+        text_box = f"Text Analysis:\n\n{wrapped_text}\n{entity_highlights}{keyword_text}"
+        
+        # Add colored background based on predicted emotion
+        pred_emotion = prediction['predicted_emotion']
+        emotion_color = emotion_colors.get(pred_emotion, "#A9A9A9")
+        
+        # Create a rectangle with the emotion color as background
+        rect = Rectangle((0, 0), 1, 1, fc=emotion_color, alpha=0.3)
+        ax_text.add_patch(rect)
+        
+        # Add the text on top
+        ax_text.text(0.05, 0.95, text_box, 
+                    va='top', ha='left', 
+                    fontsize=10,
+                    wrap=True)
+        
+        ax_text.set_title(f'Detected Emotion: {pred_emotion.capitalize()} ({prediction["confidence"]:.2f})', 
+                        fontsize=14)
+        
+        plt.tight_layout()
+        figures['text_analysis'] = fig_text
+        
+        return figures
 
     def predict_and_explain(self, text):
         """
@@ -919,11 +1058,9 @@ class EmotionAnalyzer:
         }
         
         explanation += emotion_explanations.get(predicted_emotion, 
-                                               "The text shows mixed or complex emotions.")
+                                              "The text shows mixed or complex emotions.")
         
         return explanation
-
-# Create an emotion analyzer with your trained model
 analyzer = EmotionAnalyzer(
     model=trained_model,
     tokenizer=tokenizer,
@@ -931,9 +1068,7 @@ analyzer = EmotionAnalyzer(
     label_encoder=label_encoder,
     preprocessing_func=advanced_text_preprocessing
 )
-# Test with a sample text
 test_text = "The sunset over the mountains filled me with a sense of peace and tranquility, reminding me of better times."
-# Get a basic prediction
 prediction = analyzer.predict_emotion(test_text)
 print("Basic prediction:")
 for key, value in prediction.items():
@@ -956,11 +1091,9 @@ print(explanation)
 # Create visualization
 fig = analyzer.visualize_prediction(test_text)
 plt.show()
-# Save the model, tokenizer, and label encoder
 import os
 os.makedirs('emotion_detection_model', exist_ok=True)
 trained_model.save('emotion_detection_model/model.keras')
-# Save the tokenizer
 with open('emotion_detection_model/tokenizer.pickle', 'wb') as handle:
     pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 with open('emotion_detection_model/label_encoder.pickle', 'wb') as handle:
@@ -1009,3 +1142,59 @@ test_texts = [
 ]
 
 analyze_multiple_texts(analyzer, test_texts)
+def simple_emotion_analyzer():
+    print("\n===== Emotion Detection System =====")
+    print("Type 'exit' to quit the program\n")
+    
+    current_analyzer = loaded_analyzer  # If you've loaded the model
+    # current_analyzer = analyzer  # If you're using the trained model directly
+    
+    while True:
+        user_text = input("\nEnter text to analyze emotions: ")
+        
+        if user_text.lower() == 'exit':
+            print("Exiting program...")
+            break
+        
+        if not user_text.strip():
+            print("Please enter some text to analyze.")
+            continue
+        
+        # Get prediction and explanation
+        print(f"\n=== Analyzing: \"{user_text}\" ===\n")
+        prediction = current_analyzer.predict_emotion(user_text)
+        explanation = current_analyzer.predict_and_explain(user_text)
+        
+        # Print the explanation
+        print(explanation)
+        
+        # Create separate visualizations
+        figures = current_analyzer.visualize_prediction_separate(user_text)
+        
+        # Display each figure one by one
+        print("\nDisplaying visualizations one by one (close each figure to see the next one)...")
+        
+        # Show emotion probabilities
+        print("\n1. Emotion Probabilities Chart:")
+        plt.figure(figures['emotion_probs'].number)
+        plt.show()
+        
+        # Show sentiment analysis
+        print("\n2. Sentiment Analysis Chart:")
+        plt.figure(figures['sentiment'].number)
+        plt.show()
+        
+        # Show word cloud
+        print("\n3. Word Cloud:")
+        plt.figure(figures['wordcloud'].number)
+        plt.show()
+        
+        # Show text analysis
+        print("\n4. Text Analysis:")
+        plt.figure(figures['text_analysis'].number)
+        plt.show()
+        
+        print("\nAnalysis complete!")
+
+# Run the interactive emotion analyzer
+simple_emotion_analyzer()
